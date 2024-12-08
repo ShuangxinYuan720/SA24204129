@@ -1,0 +1,126 @@
+---
+title: "A-SA24204129-袁爽馨-Introduction"
+date: "2024-12-02"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A-SA24204129-袁爽馨-Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+__SA24204129__ is a simple R package developed, which contains two R functions and one Rcpp function. It can be used for data preprocessing, data set partitioning and logistic regression with elastic net, and gives the model prediction effect, which can reasonably and efficiently deal with the binary classification problem.
+Three functions are considered, namely _elasticnet_logistic_ ( logistic regression model with elastic net, where the regularization parameter depends on the automatic selection of cross-validation ) and _preprocess_ ( data missing value processing and standardization ), and _stratified _train_test_split_ ( data set is divided into training set and test set to ensure the same proportion ).
+
+## Prepare
+
+First, load the package, set the seed and prepare the data as follows. 
+ 
+The `PimaIndiansDiabetes`  dataset in the  `mlbench` package is a classic machine learning dataset that is often used for binary classification problems. It contains health data on Pima Indian women with the aim of predicting whether they have diabetes. The dataset is from the National Institute of Diabetes and Digestive and Kidney Diseases ( NIDDK ). The data set consists of 768 samples, including the health records of Pima Indian women. It is a two-category problem dataset with the goal of predicting diabetes based on these health characteristics.
+
+#### Feature Variables
+
+The `PimaIndiansDiabetes` dataset contains eight features and a binary label. Each sample represents a Pima Indian woman, and the label value indicates whether she has diabetes. The specific variables are as follows : 
+ 
+1. **Pregnancies** : Number of pregnancies ( Numeric ) 
+
+2. **Glucose** : blood glucose concentration ( Numeric ) 
+
+3. **BloodPressure ** : blood pressure ( Numeric ) 
+
+4. **Skin Thickness ** : Skin Thickness ( Numeric, usually measures the thickness of the triceps skin ) 
+
+5. **Insulin * * : Insulin levels ( Numeric ) 
+
+6. **BMI * * : Body mass index ( Numeric ) 
+
+7. **DiabetesPedigreeFunction ** : Family history of diabetes ( Numeric, measure of genetic factors associated with diabetes ) 
+
+8. **Age** : Age ( Numeric )
+
+#### Taget Variable 
+
+- **Outcome** : Diagnosis of diabetes ( Binary ) : 
+
+    -1 means suffering from diabetes 
+
+    -0 means no diabetes.
+
+```{r,eval=TRUE}
+library(SA24204129)
+seed=42;set.seed(seed)
+```
+
+```{r}
+## 加载数据集
+library(mlbench)
+data(PimaIndiansDiabetes)
+data <- PimaIndiansDiabetes
+data$diabetes <- ifelse(data$diabetes == 'pos', 1, 0)
+#summary(data)
+X <- data[, -ncol(data)] 
+y <- data$diabetes
+```
+
+
+## Function1:preprocess
+
+The following shows how to use the `preprocess` function in the `SA24204129` package for data preprocessing. The function includes two main functions : missing value processing ( using mode filling ) and data standardization.
+
+```{r}
+processed_X <- preprocess(X)
+# 打印预处理后的数据
+print("预处理后的数据：")
+print(head(processed_X))
+```
+
+## Function2:Stratified Train-Test Split
+
+The function splits a dataset into training and testing sets in a stratified 
+manner, preserving the distribution of the target variable `y`. This is particularly 
+useful when dealing with imbalanced classes. Below is an example demonstrating 
+the usage of the function.
+
+```{r}
+p_X=as.matrix(processed_X)
+## stratified_train_test_split函数分层划分80%训练集和20%测试集
+result <- stratified_train_test_split(p_X, y, test_ratio = 0.2)
+X_train <- result$X_train
+y_train <- result$y_train
+X_test <- result$X_test
+y_test <- result$y_test
+## 查看分层结果来验证比例
+table(y_train)
+table(y_test)
+```
+
+## Function3:elasticnet_logistic
+
+This function realizes the use of logistic regression to solve the binary classification problem, and introduces the elastic network structure to realize the screening of variables and the control of model redundancy. Use the data obtained by the function stratification in the previous example to demonstrate.
+
+```{r}
+## 使用elasticnet_logistic进行训练和评估
+results <- elasticnet_logistic(X_train, y_train, X_test, y_test,seed=seed)
+# 查看模型评估结果
+print(results)
+```
+
+- Optimal alpha value (`best_alpha`): This value controls the ratio of L1 (Lasso) and L2 (Ridge) regularization, and choosing the appropriate 'alpha' value helps balance the bias and variance of the model, with values between 0 and 1, and there is usually no fixed "bigger is better" or "smaller is better", which needs to be selected by cross-validation.
+
+- Cross-validation score (`CV_scores`): Represents the average score of the model in cross-validation, usually smaller is better, depending on the loss function used, with a smaller score indicating a better fit.
+
+- Test Set Accuracy (`test_accuracy`): Indicates the accuracy of the model on the test set, with closer to 1 indicating better model performance.
+
+- `precision`: The higher the precision, the better, representing the proportion of samples that are predicted to be positive.
+
+- `recall`: The higher the recall, the better, representing the proportion of samples that are actually positive that are correctly predicted to be positive.
+- F1 Score (`f1_score`): The F1 score is a blended average of precision and recall, with values closer to 1 being better, indicating that the model has a good balance of accuracy and recall.
+
+- AUC(`AUC`): AUC values closer to 1 indicate that the model has stronger classification power, and closer to 0.5 means that the model is as effective as random guesses.
+
+Overall, the closer the accuracy, precision, recall, F1 score, and AUC value to 1 is the better the model performance, while the lower the cross-validation score is generally the better, meaning the model fits the training data better. 
