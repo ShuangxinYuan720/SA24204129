@@ -1,0 +1,24 @@
+Package: SA24204129
+Type: Package
+Title: Functions written by studying the course "Statistical Computing"
+Version: 1.0
+Date: 2024-12-02
+Author: Shuangxin Yuan <571878285@qq.com>
+Maintainer: Shuangxin Yuan <571878285@qq.com>
+Description: This package contains several R and Rcpp functions that can be used for data preprocessing, data set partitioning, and logical regression with elastic nets.
+License: GPL (>= 2)
+Imports: Rcpp, 
+         glmnet,
+         caret,
+         pROC,
+         ggplot2,boot,bootstrap,DAAG,lpSolve,microbenchmark,mlbench,
+         knitr
+Suggests: rmarkdown
+VignetteBuilder: knitr
+LinkingTo: Rcpp
+RoxygenNote: 7.3.2
+Encoding: UTF-8
+URL: http://github.com/ShuangxinYuan720/SA24204129
+BugReports: http://github.com/ShuangxinYuan720/SA24204129/issues
+
+
